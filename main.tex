@@ -15,7 +15,9 @@
 
 \input{tex/dedicatoria}
 
+\frontmatter
 \pagestyle{fancy}
+\numberedchapterfalse
 
 \renewcommand{\contentsname}{CONTENIDO}
 \chapternn{\contentsname}
@@ -30,6 +32,10 @@
 
 \pagenumbering{arabic}
 \setcounter{page}{1}
+
+\mainmatter
+\pagestyle{fancy}
+\numberedchaptertrue
 
 \input{tex/capitulos/cap1}
 

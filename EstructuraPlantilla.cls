@@ -84,14 +84,13 @@
 \RequirePackage{marginfix} % Proporciona opciones para notas al margen
 \RequirePackage{sidenotes} % Para usar notas al margen
 \RequirePackage{chngcntr} % Restablecer contadores en secciones
-\RequirePackage[bottom, symbol*, hang, flushmargin, stable]{footmisc} % Requerido para configurar las notas al pie
-\RequirePackage{footnotebackref} % Crea referencias posteriores de las notas al pie de página al texto
+\RequirePackage[bottom, flushmargin, stable]{footmisc} % Requerido para configurar las notas al pie
+% \RequirePackage{footnotebackref} % Crea referencias posteriores de las notas al pie de página al texto
 \RequirePackage{mdframed}
 \RequirePackage{microtype}
 \RequirePackage{multicol}
 \RequirePackage{ragged2e}
 \RequirePackage{verbatim}
-\RequirePackage{hyperref}
 \RequirePackage{geometry}
 \RequirePackage{lipsum}
 \RequirePackage{qrcode}
@@ -317,6 +316,8 @@ BoldItalicFont = *-BoldItalic]{TimesNewRoman}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Hipervínculos %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{hyperref}
+
 \urlstyle{rm}
 \hypersetup{
 	pdfborder={1 1 0},
@@ -354,25 +355,25 @@ BoldItalicFont = *-BoldItalic]{TimesNewRoman}
     \vspace*{1.3mm}%
 }
 
-\renewcommand\@makefntext[1]{%
+% \renewcommand\@makefntext[1]{%
+%     \noindent
+%     \textsuperscript{%
+%         \hyperlink{fnref.\@thefnmark}{% <-- Destino corregido
+%             \color{mainc}\bfseries\@thefnmark % <-- Estilo simplificado y correcto
+%         }%
+%     }%
+%     \enspace #1%
+% }
+
+\def\@makefntext#1{%
     \noindent
     \textsuperscript{%
-        \protect\hyper@linkstart{link}{footnote.\@thefnmark}{%
-        {\color{mainc}\superior\bfseries\selectfont\@thefnmark}%
+        \protect\hyper@linkstart{link}{\@currentHref}{
+            \color{mainc}\superior\bfseries\@thefnmark
+        }\protect\hyper@linkend%
     }%
-        \protect\hyper@linkend
-    }%
-    \enspace #1
+    \enspace #1%
 }
-
-% \renewcommand\@makefnmark{%
-%   \textsuperscript{%
-%     \protect\hyper@linkstart{link}{footnote.\@thefnmark}{%
-%       {\color{mainc}\creato\bfseries\selectfont\@thefnmark}%
-%     }%
-%     \protect\hyper@linkend
-%   }%
-% }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Encabezados %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -404,63 +405,137 @@ BoldItalicFont = *-BoldItalic]{TimesNewRoman}
 %   }
 % }
 
+% \fancypagestyle{fancy}{
+%   \renewcommand{\headrulewidth}{0pt}
+%   \fancyhf{}
+%   \fancyhfoffset[LE,RO]{\marginparsep + \marginparwidth}
+
+%   % - Encabezado en páginas pares
+%   \fancyhead[LE]{%
+%     \ifnum\c@chapter>0
+%       {\small\color{mainc}%
+%         \protect\hyperref[toc-contents]{\creato\selectfont\bfseries\thepage}}%
+%     \else
+%       {\small\bfseries\color{mainc}%
+%         \protect\hyperref[toc-contents]{\TrajanProB\selectfont{\scriptsize\thepage}}}%
+%     \fi
+%     \hspace{4.5em}\small\leftmark%
+%   }
+
+%   % - Encabezado en páginas impares
+%   \fancyhead[RO]{%
+%     \small\rightmark\hspace{4.5em}%
+%     \ifnum\c@chapter>0
+%       {\small\color{mainc}%
+%         \protect\hyperref[toc-contents]{\creato\selectfont\bfseries\thepage}}%
+%     \else
+%       {\leftmark\hspace{4.5em}{\small\bfseries\color{mainc}%
+%         \protect\hyperref[toc-contents]{\TrajanProB\selectfont\MakeLowercase{\scriptsize\thepage}}}}%
+%     \fi
+%   }
+% }
+
+% \def\sectionmark#1{%
+%   \markright{%
+%     \protect\hyper@linkstart{link}{\@currentHref}{%{\TrajanProB\selectfont\color{mainc}Sección}~
+%       {\color{mainc}\bfseries\thesection}\hspace{1.5em}%
+%     \creato\selectfont#1}\protect\hyper@linkend
+%   }%
+% }
+
+% \renewcommand{\chaptermark}[1]{%
+%   \ifnum\c@chapter>0
+%     % — Capítulo numerado
+%     \markboth{%
+%       \protect\hyper@linkstart{link}{\@currentHref}{%
+%         {\TrajanProB\selectfont\bfseries\color{mainc}%
+%           \chaptertitlename}~%
+%           {\bfseries\color{mainc}\thechapter% \fontencoding{T1}\fontfamily{phv}
+%           \hspace{1.5em}}
+%             \creato\selectfont#1}%
+%       \protect\hyper@linkend}{}%
+%   \else
+%     % — Capítulo no numerado
+%     \markboth{%
+%       \protect\hyper@linkstart{link}{\@currentHref}{%
+%         \creato\selectfont%
+%           #1}%
+%       \protect\hyper@linkend}{}%
+%   \fi
+% }
+
+\newif\ifnumberedchapter
+
+% --- Definición del estilo de página ---
 \fancypagestyle{fancy}{
   \renewcommand{\headrulewidth}{0pt}
   \fancyhf{}
   \fancyhfoffset[LE,RO]{\marginparsep + \marginparwidth}
 
-  % - Encabezado en páginas pares
+  % -- PÁGINAS PARES --
   \fancyhead[LE]{%
-    \ifnum\c@chapter>0
-      {\small\color{mainc}%
-        \protect\hyperref[toc-contents]{\creato\selectfont\bfseries\thepage}}%
+    \ifnumberedchapter
+      % Estilo para capítulos NUMERADOS
+      {\small\color{mainc}\protect\hyperref[toc-contents]{\creato\selectfont\bfseries\thepage}}%
     \else
-      {\small\bfseries\color{mainc}%
-        \protect\hyperref[toc-contents]{\TrajanProB\selectfont{\scriptsize\thepage}}}%
+      % Estilo para capítulos NO numerados (Apéndices, Intro, etc.)
+      {\small\bfseries\color{mainc}\protect\hyperref[toc-contents]{\TrajanProB\selectfont{\scriptsize\thepage}}}%
     \fi
     \hspace{4.5em}\small\leftmark%
   }
 
-  % - Encabezado en páginas impares
+  % -- PÁGINAS IMPARES --
   \fancyhead[RO]{%
     \small\rightmark\hspace{4.5em}%
-    \ifnum\c@chapter>0
-      {\small\color{mainc}%
-        \protect\hyperref[toc-contents]{\creato\selectfont\bfseries\thepage}}%
+    \ifnumberedchapter
+      % Estilo para capítulos NUMERADOS
+      {\small\color{mainc}\protect\hyperref[toc-contents]{\creato\selectfont\bfseries\thepage}}%
     \else
-      {\leftmark\hspace{4.5em}{\small\bfseries\color{mainc}%
-        \protect\hyperref[toc-contents]{\TrajanProB\selectfont\MakeLowercase{\scriptsize\thepage}}}}%
+      % Estilo para capítulos NO numerados
+      {\leftmark\hspace{4.5em}{\small\bfseries\color{mainc}\protect\hyperref[toc-contents]{\TrajanProB\selectfont\MakeLowercase{\scriptsize\thepage}}}}%
     \fi
   }
 }
 
-\def\sectionmark#1{%
-  \markright{%
-    \protect\hyper@linkstart{link}{\@currentHref}{%{\TrajanProB\selectfont\color{mainc}Sección}~
-      {\color{mainc}\bfseries\thesection}\hspace{1.5em}%
-    \creato\selectfont#1}\protect\hyper@linkend
-  }%
+\renewcommand{\chaptermark}[1]{%
+  \ifnumberedchapter
+    % --- Capítulo numerado (versión robusta) ---
+    \markboth{%
+      \texorpdfstring{
+        \protect\hyper@linkstart{link}{\@currentHref}{%
+          {\TrajanProB\selectfont\bfseries\color{mainc}\chaptertitlename}~%
+          {\bfseries\color{mainc}\thechapter\hspace{1.5em}}%
+          \creato\selectfont#1%
+        }\protect\hyper@linkend
+      }{ % Versión de texto plano para el PDF bookmark:
+        \chaptertitlename\ \thechapter: #1
+      }
+    }{}%
+  \else
+    % --- Capítulo no numerado (versión robusta) ---
+    \markboth{%
+      \texorpdfstring{
+        \protect\hyper@linkstart{link}{\@currentHref}{%
+          \creato\selectfont#1%
+        }\protect\hyper@linkend
+      }{ % Versión de texto plano:
+        #1
+      }
+    }{}%
+  \fi
 }
 
-\renewcommand{\chaptermark}[1]{%
-  \ifnum\c@chapter>0
-    % — Capítulo numerado
-    \markboth{%
+\def\sectionmark#1{%
+  \markright{%
+    \texorpdfstring{
       \protect\hyper@linkstart{link}{\@currentHref}{%
-        {\TrajanProB\selectfont\bfseries\color{mainc}%
-          \chaptertitlename}~%
-          {\bfseries\color{mainc}\thechapter% \fontencoding{T1}\fontfamily{phv}
-          \hspace{1.5em}}
-            \creato\selectfont#1}%
-      \protect\hyper@linkend}{}%
-  \else
-    % — Capítulo no numerado
-    \markboth{%
-      \protect\hyper@linkstart{link}{\@currentHref}{%
-        \creato\selectfont%
-          #1}%
-      \protect\hyper@linkend}{}%
-  \fi
+        {\color{mainc}\bfseries\thesection}\hspace{1.5em}%
+        \creato\selectfont#1%
+      }\protect\hyper@linkend
+    }{ % Versión de texto plano:
+      \thesection\ #1
+    }
+  }%
 }
 
 \fancypagestyle{plain}{                % - Estilo para cuando se especifica un estilo de página simple
